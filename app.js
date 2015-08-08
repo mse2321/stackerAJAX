@@ -10,7 +10,7 @@ $(document).ready( function() {
 		// zero out results if previous search has run
 		$('.results').html('');
 		// get the value of the tags the user submitted
-		var tags = $(this).find("input[name='tags']").val();
+		var tags = $(this).find("input[name='answerers']").val();
 		getInspiration(tags);
 	});
 });
@@ -27,6 +27,38 @@ var showQuestion = function(question) {
 	var questionElem = result.find('.question-text a');
 	questionElem.attr('href', question.link);
 	questionElem.text(question.title);
+
+	// set the date asked property in result
+	var asked = result.find('.asked-date');
+	var date = new Date(1000*question.creation_date);
+	asked.text(date.toString());
+
+	// set the #views for question property in result
+	var viewed = result.find('.viewed');
+	viewed.text(question.view_count);
+
+	// set some properties related to asker
+	var asker = result.find('.asker');
+	asker.html('<p>Name: <a target="_blank" href=http://stackoverflow.com/users/' + question.owner.user_id + ' >' +
+													question.owner.display_name +
+												'</a>' +
+							'</p>' +
+ 							'<p>Reputation: ' + question.owner.reputation + '</p>'
+	);
+
+	return result;
+};
+
+var showBestAnswerers = function(question) {
+	
+	// clone our result template code
+	var result = $('.templates .best-answerer').clone();
+	//var resultAnswerers = $('.templates .question').clone();
+	
+	// Set the question properties in result
+	var answererElem = result.find('.answerer a');
+	answererElem.attr('href', question.link);
+	answererElem.text(question.title);
 
 	// set the date asked property in result
 	var asked = result.find('.asked-date');
@@ -105,19 +137,18 @@ var getInspiration = function(tags) {
 								sort: 'creation'};
 	
 	var result = $.ajax({
-		url: "http://api.stackexchange.com/2.2/questions/top-answerers",
+		url: "http://api.stackexchange.com/2.2/tags/" + tags + "/top-answerers",
 		data: request,
 		dataType: "jsonp",
 		type: "GET",
 		})
 	.done(function(result){
 		var searchResults = showSearchResults(request.tagged, result.items.length);
-
 		$('.search-results').html(searchResults);
 
-		$.each(result.items, function(i, item) {
-			var question = showQuestion(item);
-			$('.results').append(question);
+		$.each(result.items, function(e, item) {
+			var bestAnswerer = showBestAnswerers(item);
+			$('.results').append(bestAnswerer);
 		});
 	})
 	.fail(function(jqXHR, error, errorThrown){
