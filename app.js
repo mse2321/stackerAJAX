@@ -49,34 +49,30 @@ var showQuestion = function(question) {
 	return result;
 };
 
-var showBestAnswerers = function(question) {
+
+// this function takes the answerer object returned by StackOverflow 
+// and creates new result to be appended to DOM
+var showBestAnswerers = function(bestanswerer) {
 	
 	// clone our result template code
-	var result = $('.templates .best-answerer').clone();
-	//var resultAnswerers = $('.templates .question').clone();
+	var result = $('.templates .bestanswerer').clone();
 	
-	// Set the question properties in result
-	var answererElem = result.find('.answerer a');
-	answererElem.attr('href', question.link);
-	answererElem.text(question.title);
+	// Set the name of the user
+	var answererElem = result.find('.user a');
+	answererElem.attr('href', bestanswerer.user.link);
+	answererElem.text(bestanswerer.user.display_name);
 
-	// set the date asked property in result
-	var asked = result.find('.asked-date');
-	var date = new Date(1000*question.creation_date);
-	asked.text(date.toString());
+	// set the numbers of posts by user
+	var posts = result.find('.posts');
+	posts.text(bestanswerer.post_count);
 
-	// set the #views for question property in result
-	var viewed = result.find('.viewed');
-	viewed.text(question.view_count);
+	// set the reputation of the user
+	var reputationElem = result.find('.reputation');
+	reputationElem.text(bestanswerer.user.reputation);
 
-	// set some properties related to asker
-	var asker = result.find('.asker');
-	asker.html('<p>Name: <a target="_blank" href=http://stackoverflow.com/users/' + question.owner.user_id + ' >' +
-													question.owner.display_name +
-												'</a>' +
-							'</p>' +
- 							'<p>Reputation: ' + question.owner.reputation + '</p>'
-	);
+	//set the user score
+	var scoreElem = result.find('.score');
+	scoreElem.text(bestanswerer.score);
 
 	return result;
 };
@@ -137,7 +133,7 @@ var getInspiration = function(tags) {
 								sort: 'creation'};
 	
 	var result = $.ajax({
-		url: "http://api.stackexchange.com/2.2/tags/" + tags + "/top-answerers",
+		url: "http://api.stackexchange.com/2.2/tags/" + tags + "/top-answerers/all_time",
 		data: request,
 		dataType: "jsonp",
 		type: "GET",
